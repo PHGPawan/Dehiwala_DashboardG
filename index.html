@@ -170,30 +170,32 @@ body {
 
 /* Content wrapper */
 .content {
-  flex: 1; position: relative; overflow: hidden;
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
 }
 
-/* Pages — slide+fade transitions */
-.page-wrap { position: relative; flex: 1; overflow: hidden; }
+/* Pages — fade+slide transitions */
+.page-wrap { flex: 1; overflow-y: auto; position: relative; }
+.page-wrap::-webkit-scrollbar { width: 5px; }
+.page-wrap::-webkit-scrollbar-track { background: transparent; }
+.page-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 .page {
-  position: absolute; inset: 0;
+  display: none;
   padding: 24px 28px 40px;
-  overflow-y: auto;
-  opacity: 0;
-  transform: translateX(18px);
-  pointer-events: none;
-  transition: opacity 0.32s cubic-bezier(0.4,0,0.2,1),
-              transform 0.32s cubic-bezier(0.4,0,0.2,1);
-  will-change: opacity, transform;
+  animation: pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both;
 }
-.page::-webkit-scrollbar { width: 5px; }
-.page::-webkit-scrollbar-track { background: transparent; }
-.page::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-.page.active {
-  opacity: 1; transform: translateX(0); pointer-events: all;
-}
+.page.active { display: block; }
 .page.exit {
-  opacity: 0; transform: translateX(-14px); pointer-events: none;
+  display: block;
+  animation: pageOut 0.22s cubic-bezier(0.4,0,0.2,1) both;
+  pointer-events: none;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pageOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-12px); }
 }
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
 
@@ -771,20 +773,24 @@ function switchPage(page, item) {
   const prevPage = document.getElementById('page-' + currentPage);
   const nextPage = document.getElementById('page-' + page);
   const topbarLeft = document.querySelector('.topbar-left');
+  const pageWrap = document.querySelector('.page-wrap');
 
-  // Exit current page
+  // Scroll back to top
+  pageWrap.scrollTop = 0;
+
+  // Exit current page with animation, then hide
   if (prevPage) {
     prevPage.classList.remove('active');
     prevPage.classList.add('exit');
-    setTimeout(() => prevPage.classList.remove('exit'), 350);
+    setTimeout(() => prevPage.classList.remove('exit'), 230);
   }
 
-  // Enter next page (slight delay for overlap feel)
+  // Enter next page after brief delay
   setTimeout(() => {
     nextPage.classList.add('active');
-  }, 60);
+  }, 80);
 
-  // Animate topbar text out then in
+  // Topbar text swap animation
   topbarLeft.classList.add('topbar-animating');
   setTimeout(() => {
     const m = PAGE_META[page];
